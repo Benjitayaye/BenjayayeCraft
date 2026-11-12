@@ -12,13 +12,19 @@ import math
 from contextlib import closing
 from datetime import datetime,timezone
 from pathlib import Path
+from almacenamiento import conectar_base
 
 PERIODOS=('24h','7d','4w')
 
 
 def abrir(db):
     Path(db).parent.mkdir(parents=True,exist_ok=True)
-    con=sqlite3.connect(db,timeout=10)
+    con=conectar_base(db)
+    crear_tablas(con)
+    return con
+
+
+def crear_tablas(con):
     con.execute('''CREATE TABLE IF NOT EXISTS referencias_mercado (
         item_id TEXT,ciudad TEXT,calidad INTEGER,fecha TEXT,datos TEXT,
         PRIMARY KEY(item_id,ciudad,calidad))''')
@@ -29,11 +35,10 @@ def abrir(db):
     con.execute('''CREATE TABLE IF NOT EXISTS puntos_historial_mercado (
         item_id TEXT,ciudad TEXT,calidad INTEGER,periodo TEXT,fecha TEXT,datos TEXT,
         PRIMARY KEY(item_id,ciudad,calidad,periodo))''')
-    return con
 
 
 def validar_identidad(catalogo,id,ciudad,calidad):
-    from lector_datos import CIUDADES_LECTOR
+    from precios_guardados import CIUDADES_LECTOR
     if id not in catalogo or ciudad not in CIUDADES_LECTOR or type(calidad) is not int or not 1<=calidad<=5:
         raise ValueError('Revisa objeto, ciudad y calidad del historial')
 
@@ -61,7 +66,7 @@ def validar_puntos(puntos):
     return salida
 
 
-def guardar_referencias(db,catalogo,datos):
+def guardar_referencias(db,catalogo,datos,conexion=None):
     if datos.get('prueba'):return
     tablas=datos.get('referencias') or {};historia=datos.get('historial_mercado')
     if not tablas and not historia:return
@@ -88,7 +93,7 @@ def guardar_referencias(db,catalogo,datos):
         valores=[entero(historia.get(k),True) for k in ('precio_medio','punto_precio','punto_vendido')]
         puntos=validar_puntos(historia.get('puntos',[]))
         registro=(id,ciudad,calidad,periodo,fecha,valores[0],int(bool(historia.get('aproximado'))),valores[1],valores[2],imagen,hashlib.sha256(imagen).hexdigest())
-    with closing(abrir(db)) as con,con:
+    def escribir(con):
         if limpias:
             con.execute('''INSERT INTO referencias_mercado VALUES(?,?,?,?,?)
                 ON CONFLICT(item_id,ciudad,calidad) DO UPDATE SET fecha=excluded.fecha,datos=excluded.datos
@@ -103,6 +108,10 @@ def guardar_referencias(db,catalogo,datos):
                 ON CONFLICT(item_id,ciudad,calidad,periodo) DO UPDATE SET fecha=excluded.fecha,datos=excluded.datos
                 WHERE excluded.fecha>=puntos_historial_mercado.fecha''',
                 (id,ciudad,calidad,periodo,fecha,json.dumps(puntos,ensure_ascii=False)))
+    if conexion is not None:
+        crear_tablas(conexion);escribir(conexion)
+    else:
+        with closing(abrir(db)) as con,con:escribir(con)
 
 
 def consultar_historial(db,catalogo,id,ciudad,calidad,periodo):

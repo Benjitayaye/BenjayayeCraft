@@ -1,0 +1,43 @@
+BENJAYAYE CRAFT — SOLO PÁGINA WEB V67
+
+Entra a Mercado desde el menú. Para vaciar el plan, usa Acumulado >
+Borrar todos los lotes. Más detalles en CAMBIOS_V67.md.
+
+Para recibir precios del lector V66 en tu web de Render, lee
+SINCRONIZAR_API_V66.md. En el mismo equipo se sincronizan al analizar.
+
+1. Extrae completamente esta carpeta del ZIP.
+2. Necesitas Python 3.10 o superior. No requiere instalar paquetes con pip.
+3. En Windows, abre INICIAR_WEB.bat. Se abrirá la calculadora en el navegador.
+   También puedes abrir una terminal en esta carpeta y ejecutar:
+   python app.py
+4. La dirección habitual es http://127.0.0.1:8501
+   Mantén abierta la ventana del servidor mientras utilizas la página.
+   Para cerrar el servidor, pulsa Ctrl+C en esa ventana.
+
+CONTENIDO
+- Calculadora, recetas, catálogo, imágenes y fondo de la página.
+- Precios manuales, lotes, ganancias, compras marcadas y exportación CSV.
+- Servidor Python y módulos de base de datos necesarios para esas funciones.
+
+No incluye el lector de pantalla, autoclicker, OCR, instaladores del lector,
+Tesseract, Pillow, calibración ni herramientas de escritorio.
+No se conecta al juego ni lo controla.
+
+DATOS GUARDADOS
+La base de datos se crea automáticamente fuera de esta carpeta:
+Windows: %LOCALAPPDATA%\BenjayayeCraft\precios.sqlite3
+Linux: ~/.local/share/BenjayayeCraft/precios.sqlite3
+Puedes elegir otra carpeta definiendo BENJAYAYE_DATOS antes de iniciar.
+Los precios y lotes existentes del mismo usuario siguen siendo compatibles.
+Las opciones de lecturas/historial de la interfaz solo consultan datos guardados;
+este paquete no realiza lecturas nuevas del juego. Usa precios manuales si
+no dispones de datos anteriores.
+
+OTROS DISPOSITIVOS EN TU MISMA RED
+Ejecuta: python app.py --compartir-red-local
+El programa muestra el enlace privado que puedes pasar a otra persona.
+La computadora y el servidor deben permanecer encendidos.
+
+No abras index.html directamente: la página necesita el servidor Python.
+Las imágenes que no estén incluidas se descargan al consultarlas y requieren internet.

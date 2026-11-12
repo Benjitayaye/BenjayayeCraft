@@ -5,6 +5,17 @@ from contextlib import closing
 from pathlib import Path
 
 
+def conectar_base(db,timeout=10):
+    """Permite que lector y web lean mientras otro proceso confirma precios."""
+    con=sqlite3.connect(db,timeout=timeout,uri=True)
+    try:
+        modo=con.execute('PRAGMA journal_mode').fetchone()[0]
+        if modo not in ('wal','memory'):con.execute('PRAGMA journal_mode=WAL')
+    except Exception:
+        con.close();raise
+    return con
+
+
 def carpeta_datos():
     personalizada=os.environ.get('BENJAYAYE_DATOS')
     if personalizada:return Path(personalizada).expanduser().resolve()
@@ -26,19 +37,19 @@ def importar_base(origen,destino):
     for p in (origen,Path(str(origen)+'-wal')):
         if p.is_file():huella.update(p.read_bytes())
     firma=huella.hexdigest()
-    with closing(sqlite3.connect(destino,timeout=15,uri=True)) as con:
+    with closing(conectar_base(destino,timeout=15)) as con:
         con.execute('ATTACH DATABASE ? AS anterior',(origen.as_uri()+'?mode=ro',))
         with con:
             con.execute('CREATE TABLE IF NOT EXISTS bases_importadas(ruta TEXT PRIMARY KEY,firma TEXT NOT NULL)')
             con.execute('BEGIN IMMEDIATE')
             if con.execute('SELECT firma FROM bases_importadas WHERE ruta=?',(str(origen),)).fetchone()==(firma,):return
             tablas={r[0] for r in con.execute("SELECT name FROM anterior.sqlite_master WHERE type='table'")}
-            for tabla in ('precios','lotes','precios_lector','historial_lector','referencias_mercado','historial_mercado','puntos_historial_mercado'):
+            for tabla in ('precios','lotes','compras_plan','precios_lector','historial_lector','referencias_mercado','historial_mercado','puntos_historial_mercado'):
                 if tabla not in tablas:continue
                 esquema=con.execute('SELECT sql FROM anterior.sqlite_master WHERE type=\'table\' AND name=?',(tabla,)).fetchone()[0]
                 if not con.execute('SELECT 1 FROM main.sqlite_master WHERE type=\'table\' AND name=?',(tabla,)).fetchone():
                     con.execute(esquema)
-                if tabla in ('precios','lotes'):
+                if tabla in ('precios','lotes','compras_plan'):
                     con.execute(f'INSERT OR IGNORE INTO main.{tabla} SELECT * FROM anterior.{tabla}')
                 elif tabla=='precios_lector':
                     con.execute('''INSERT INTO main.precios_lector SELECT * FROM anterior.precios_lector WHERE 1

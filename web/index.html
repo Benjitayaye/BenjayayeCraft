@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11151c">
+  <title>Benjayaye Craft V67 · Calculadora de Albion Online</title>
+  <link rel="stylesheet" href="/web/estilos.css">
+  <script src="/web/plan.js" defer></script>
+  <script src="/web/mercado.js" defer></script>
+  <script src="/web/app.js" defer></script>
+  <script src="/web/historial.js" defer></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">◆</span><span>BENJAYAYE <b>CRAFT</b></span></div>
+      <nav aria-label="Navegación">
+        <a href="#calculadora">Calculadora</a>
+        <a href="#precios">Precios guardados</a>
+        <a href="#mercado">Mercado</a>
+        <a href="#receta">Receta</a>
+        <a href="#plan">Acumulado</a>
+        <button id="guardar-lote" class="boton-guardar-lote" type="button" disabled><span aria-hidden="true">＋</span> Guardar crafteo</button>
+      </nav>
+    </header>
+    <p id="estado-guardado" class="estado-guardado" role="status" aria-live="polite">Guarda un lote para sumarlo a tu lista de materiales.</p>
+
+    <main id="calculadora">
+      <div class="cabecera-calculadora"><p class="sobretitulo">TU TALLER · AMÉRICAS</p><span id="canal-local" class="canal-local" role="status" data-estado="espera">Conectando con tus datos…</span></div>
+      <h1>Calculadora de crafteo <span>Albion Online</span></h1>
+      <p class="subtitulo">Busca el objeto por nombre, elige tier, encantamiento y calidad, y calcula tus ganancias.</p>
+      <section class="accesos-recientes" aria-label="Objetos recientes">
+        <div><span>Volver a un objeto</span><small id="estado-recetas-locales" role="status">Preparando las recetas incluidas…</small></div>
+        <div id="objetos-recientes" class="objetos-recientes"><small>Tus últimas selecciones aparecerán aquí.</small></div>
+      </section>
+
+      <section class="tablero" aria-label="Calculadora de fabricación">
+        <section class="tarjeta tarjeta-objeto">
+          <h2>INFO DEL<br>OBJETO</h2>
+          <div class="icono-producto"><img id="imagen-objeto" src="" alt="Icono del objeto elegido"><span id="calidad-imagen" class="calidad-imagen">Normal</span></div>
+          <label for="tipo-objeto" class="etiqueta">CATÁLOGO</label>
+          <select id="tipo-objeto" class="filtro-catalogo"><option value="todos">Todos los objetos</option><option value="comida">Comidas</option></select>
+          <label for="buscar-objeto" class="etiqueta">OBJETO O COMIDA A CRAFTEAR</label>
+          <div class="buscador">
+            <input id="buscar-objeto" type="search" autocomplete="off" placeholder="Escribe el nombre…" aria-autocomplete="list" aria-controls="sugerencias-objeto" aria-expanded="false">
+            <div id="sugerencias-objeto" class="sugerencias" role="listbox" hidden></div>
+          </div>
+          <div class="par-controles">
+            <div><label for="tier" class="etiqueta">TIER</label><select id="tier"></select></div>
+            <div><label for="encantamiento" class="etiqueta">ENCANTAMIENTO</label><select id="encantamiento"></select></div>
+          </div>
+          <div class="control-calidad">
+            <label class="etiqueta" for="calidad-lector">CALIDAD A CRAFTEAR</label>
+            <select id="calidad-lector"><option value="1">Normal</option><option value="2">Bueno</option><option value="3">Notable</option><option value="4">Sobresaliente</option><option value="5">Obra maestra</option></select>
+            <small>Calidad usada en la imagen, el precio y el historial.</small>
+          </div>
+          <div class="seleccion"><strong id="nombre-elegido">Cargando catálogo…</strong><span id="id-elegido">—</span></div>
+          <section class="historial-objeto" aria-label="Historial de mercado del objeto">
+            <h3>Historial de mercado</h3>
+            <small id="historial-contexto">Selecciona un objeto para consultar su historial.</small>
+            <label for="historial-periodo" class="sr-only">Periodo del historial</label>
+            <select id="historial-periodo"><option value="24h">24 horas</option><option value="7d">7 días</option><option value="4w">4 semanas</option></select>
+            <p id="historial-estado" class="historial-ayuda" role="status">Todavía no hay un historial leído.</p>
+            <div id="historial-datos" hidden>
+              <div class="historial-media"><span>Precio medio del periodo</span><strong id="historial-media">—</strong></div>
+              <a id="historial-ampliar" target="_blank" rel="noopener"><img id="historial-grafico" alt="Historial de mercado capturado en Albion"><span>Ampliar gráfico</span></a>
+              <p id="historial-punto" class="historial-ayuda"></p>
+              <details id="historial-puntos" hidden><summary id="historial-puntos-resumen">Puntos recorridos automáticamente</summary>
+                <div class="puntos-historial-scroll"><table><thead><tr><th>Punto</th><th>Precio</th><th>Vendido</th></tr></thead><tbody id="historial-puntos-filas"></tbody></table></div>
+                <small>Orden de izquierda a derecha en el gráfico. Solo valores leídos; sin asignarles una fecha supuesta.</small>
+              </details>
+              <small id="historial-fecha"></small>
+            </div>
+            <details id="historial-referencias" hidden><summary>Órdenes leídas y referencias</summary><div id="historial-filas"></div></details>
+          </section>
+        </section>
+
+        <section class="tarjeta tarjeta-precio">
+          <div class="mini-icono"><img id="imagen-precio" src="" alt=""></div>
+          <label for="precio-venta" class="etiqueta etiqueta-grande">Precio de venta por unidad</label>
+          <div class="input-con-unidad"><input id="precio-venta" type="number" min="0" step="0.01" value="0" aria-describedby="estado-precio-venta"><span>plata</span></div>
+          <p id="estado-precio-venta" class="estado-precio-ausente" role="status" aria-live="polite" hidden></p>
+          <label id="etiqueta-cantidad" for="cantidad" class="etiqueta etiqueta-grande separacion">Cantidad a craftear</label>
+          <input id="cantidad" type="number" min="1" step="1" value="1">
+          <p id="resumen-produccion" class="resumen-produccion" role="status" hidden></p>
+          <div class="fila-material-principal">
+            <img id="imagen-material" src="" alt="">
+            <div><span class="etiqueta">MATERIAL 1</span><strong id="nombre-material">Cargando receta…</strong></div>
+          </div>
+          <div class="par-controles">
+            <div><label for="unidades-material" class="etiqueta">Unidades / crafteo</label><input id="unidades-material" type="number" min="0.000001" step="1" value="16"></div>
+            <div><label for="precio-material" class="etiqueta">Precio unitario</label><input id="precio-material" type="number" min="0" step="0.01" value="0"></div>
+          </div>
+          <div id="otros-materiales" class="otros-materiales" hidden></div>
+          <div id="bloque-artefacto" class="bloque-artefacto" hidden>
+            <div class="fila-material-principal fila-artefacto">
+              <img id="imagen-artefacto" src="" alt="">
+              <div><span class="etiqueta">ARTEFACTO</span><strong id="nombre-artefacto">—</strong></div>
+            </div>
+            <div class="par-controles">
+              <div><label for="unidades-artefacto" class="etiqueta">Artefactos / objeto</label><input id="unidades-artefacto" type="number" min="0.000001" step="1" value="1"></div>
+              <div><label for="precio-artefacto" class="etiqueta">Precio del artefacto</label><input id="precio-artefacto" type="number" min="0" step="0.01" value="0"></div>
+            </div>
+            <small class="nota-artefacto">No se aplica devolución al artefacto.</small>
+          </div>
+          <div class="par-controles controles-finales">
+            <div><label for="retorno" class="etiqueta">Devolución (%)</label><input id="retorno" type="number" min="0" max="100" step="0.1" value="0"></div>
+            <div><label for="tasa-estacion" class="etiqueta">Tasa / 100 nutrición</label><input id="tasa-estacion" type="number" min="0" step="0.01" value="0"></div>
+          </div>
+          <a class="enlace-material" href="#precios">Ver precios guardados ↓</a>
+        </section>
+
+        <div id="tarjetas-resultado" class="tarjetas-resultado">
+          <section class="tarjeta resultado resultado-materiales">
+            <h3>Materiales a comprar</h3>
+            <div id="resumen-materiales"></div>
+            <small>Devolución descontada · cantidades redondeadas</small>
+            <div class="total-materiales">
+              <h3>Coste neto de materiales</h3>
+              <strong id="costo-materiales-total">—</strong>
+            </div>
+          </section>
+          <section class="tarjeta resultado">
+            <div class="icono-resultado"><span aria-hidden="true">⚒</span></div>
+            <h3>Solo craftear en la estación</h3>
+            <small>Por ítem producido</small>
+            <strong id="estacion-unitaria">0,00</strong>
+            <small>Por este lote</small>
+            <strong id="impuestos-estacion">0,00</strong>
+            <small id="estado-estacion">Solo estación · no incluye materiales ni comisión de venta.</small>
+          </section>
+          <section class="tarjeta resultado">
+            <div class="icono-resultado"><span aria-hidden="true">◈</span></div>
+            <h3>Inversión total del crafteo</h3>
+            <strong id="inversion-total">0,00</strong>
+            <h3>Coste de cada objeto</h3>
+            <strong id="coste-unitario">0,00</strong>
+          </section>
+        </div>
+
+        <div class="tarjetas-ganancia">
+          <section class="tarjeta ganancia">
+            <p id="evaluacion-lote" class="evaluacion-lote" role="status">Completa los precios para evaluar el lote</p>
+            <div class="icono-resultado"><span aria-hidden="true">◈</span></div>
+            <h3>Ganancia estimada por cada objeto</h3>
+            <strong id="ganancia-unitaria">0,00</strong>
+            <h3>Ganancia estimada por todo el lote</h3>
+            <strong id="ganancia-lote">0,00</strong>
+            <div class="metricas-ganancia"><div><span>Margen neto</span><b id="margen-neto">—</b></div><div class="metrica-precio-minimo"><span>Precio mínimo a vender</span><b id="precio-equilibrio">—</b></div></div>
+            <small class="ayuda-equilibrio">Venta mínima por unidad: cubre materiales netos, estación, otros costes y comisión. Se redondea hacia arriba a 0,01 plata.</small>
+          </section>
+          <section class="tarjeta resumen">
+            <h3>Resumen de venta</h3>
+            <dl>
+              <div><dt>Ingreso bruto</dt><dd id="ingreso-bruto">0,00</dd></div>
+              <div><dt>Comisión de mercado</dt><dd id="comision-mercado">0,00</dd></div>
+              <div><dt>Ingreso neto</dt><dd id="ingreso-neto">0,00</dd></div>
+              <div><dt>Ahorro por devolución</dt><dd id="ahorro-retorno">0,00</dd></div>
+            </dl>
+            <div id="estado" class="estado">Selecciona un objeto para empezar</div>
+          </section>
+        </div>
+      </section>
+
+      <section id="precios" class="seccion-materiales base-precios">
+        <div class="seccion-encabezado">
+          <div><p class="sobretitulo">BASE DE PRECIOS</p><h2>Precios guardados de materiales</h2></div>
+          <strong id="total-precios" class="contador-precios">0 precios guardados</strong>
+        </div>
+        <p class="aviso-receta">Estos precios se usan en «Guardados manualmente» y, si faltan precios del lector y de la API, en «Ambos». Busca un material, artefacto u objeto, escribe su precio y guárdalo. Son precios personales sin ciudad.</p>
+        <div class="agregar-material">
+          <div class="buscador">
+            <label for="buscar-material" class="etiqueta">BUSCAR MATERIAL PARA GUARDAR SU PRECIO</label>
+            <input id="buscar-material" type="search" autocomplete="off" placeholder="Escribe el nombre o el ID del material…" aria-autocomplete="list" aria-controls="sugerencias-material" aria-expanded="false">
+            <div id="sugerencias-material" class="sugerencias" role="listbox" hidden></div>
+          </div>
+        </div>
+        <div id="editor-precio" class="editor-precio" hidden>
+          <img id="imagen-precio-bd" src="" alt="">
+          <div class="nombre-precio"><strong id="nombre-precio-bd">—</strong><small id="id-precio-bd">—</small></div>
+          <div><label for="precio-bd" class="etiqueta">PRECIO UNITARIO (PLATA)</label><input id="precio-bd" type="number" min="0" step="0.01" value="0"></div>
+          <button id="guardar-precio" class="boton-secundario" type="button">Guardar precio</button>
+        </div>
+        <p id="estado-precios" class="estado-precios" role="status">Los precios guardados aparecerán aquí.</p>
+        <div class="herramientas-precios"><label for="filtrar-precios" class="sr-only">Filtrar precios guardados</label><input id="filtrar-precios" type="search" placeholder="Filtrar guardados por nombre, tier o ID…"><span id="resumen-filtro-precios" role="status">0 resultados</span></div>
+        <div class="tabla-scroll lista-precios">
+          <table>
+            <thead><tr><th>Material</th><th>Precio unitario guardado</th><th>Acción</th></tr></thead>
+            <tbody id="filas-precios"></tbody>
+          </table>
+        </div>
+        <button id="ver-mas-precios" class="boton-secundario" type="button" hidden>Mostrar 60 más</button>
+      </section>
+
+      <section id="mercado" class="seccion-materiales mercado-panel" aria-label="Precios de mercado de Américas">
+        <div class="mercado-controles">
+          <div><strong>Mercado · Américas · V67</strong><small id="detalle-fuente-mercado">Lector, API sincronizada y precios guardados</small></div>
+          <div><label class="etiqueta" for="ciudad-mercado">CIUDAD DE MATERIALES</label><select id="ciudad-mercado"><option>Martlock</option><option>Bridgewatch</option><option>Lymhurst</option><option>Fort Sterling</option><option>Thetford</option><option>Caerleon</option><option>Brecilien</option><option value="Black Market">Mercado Negro (Caerleon)</option></select></div>
+          <div><label class="etiqueta" for="modo-mercado">PRECIOS</label><select id="modo-mercado"><option value="lector">Lector de pantalla</option><option value="manual">Guardados manualmente</option><option value="ambos">Ambos</option></select></div>
+          <button id="actualizar-mercado" class="boton-secundario" type="button">Actualizar precios</button>
+        </div>
+        <div id="opciones-lector" class="mercado-controles" hidden>
+          <div><label class="etiqueta" for="ciudad-objeto-lector">MERCADO DEL OBJETO</label><select id="ciudad-objeto-lector"><option>Martlock</option><option>Bridgewatch</option><option>Lymhurst</option><option>Fort Sterling</option><option>Thetford</option><option>Caerleon</option><option>Brecilien</option><option value="Black Market" selected>Mercado Negro (Caerleon)</option></select></div>
+          <div><label class="etiqueta" for="tipo-lector">PRECIO PARA VENDER EL OBJETO</label><select id="tipo-lector"><option value="venta">Oferta de venta (publicar)</option><option value="compra">Orden de compra (venta inmediata)</option></select></div>
+          <p class="nota-receta-precios">La ciudad superior corresponde a los materiales; aquí eliges el mercado del objeto fabricado. Su calidad se selecciona en la tarjeta del objeto. El lector guarda tras dos lecturas fiables iguales o al pulsar Confirmar y pasar a la web. Mantén visible la primera fila del mercado.</p>
+        </div>
+        <p id="estado-mercado" role="status">Preparando precios…</p>
+        <p id="conexion-lector" class="nota-receta-precios" role="status"></p>
+        <details><summary>Ver precios, origen y lecturas disponibles</summary><div class="tabla-scroll"><table><thead><tr><th>Objeto / material</th><th>Precio unitario</th><th>Origen / fecha / coincidencia</th></tr></thead><tbody id="precios-mercado"></tbody></table></div></details>
+        <details id="detalle-api-publica">
+          <summary>Ver cotizaciones sincronizadas de la API</summary>
+          <form id="formulario-api-publica" class="mercado-controles cotizaciones-api-filtros">
+            <div><label class="etiqueta" for="objeto-api-publica">ID DEL OBJETO</label><input id="objeto-api-publica" type="text" maxlength="160" autocomplete="off" spellcheck="false" placeholder="Ej.: T4_ARMOR_LEATHER_SET3"></div>
+            <button class="boton-secundario" type="submit">Consultar cotizaciones</button>
+          </form>
+          <p id="estado-api-publica" class="nota-receta-precios" role="status"></p>
+          <div class="tabla-scroll"><table><thead><tr><th>Ciudad</th><th>Calidad</th><th>Oferta mínima</th><th>Oferta máxima</th><th>Orden mínima</th><th>Orden máxima</th></tr></thead><tbody id="filas-api-publica"></tbody></table></div>
+        </details>
+        <p class="nota-receta-precios">En Ambos se usa primero una lectura que coincida con el objeto, variante, ciudad y calidad. Si falta, se usa la API sincronizada de las últimas 24 h o el precio manual. Puedes elegir Guardados manualmente para usar tus precios personales.</p>
+      </section>
+
+      <section id="receta" class="seccion-materiales seccion-receta">
+        <div class="seccion-encabezado">
+          <div><p class="sobretitulo">RECETA DEL OBJETO</p><h2>Materiales del crafteo</h2></div>
+          <button id="consultar-receta" class="boton-secundario" type="button">Consultar receta oficial</button>
+        </div>
+        <p id="origen-receta" class="aviso-receta">Cargando receta…</p>
+        <div class="tabla-scroll">
+          <table>
+            <thead><tr><th>Material</th><th>Receta / crafteo</th><th>Precio usado / ud.</th><th>Retorna</th><th>A comprar / lote</th><th>Coste neto</th><th></th></tr></thead>
+            <tbody id="filas-materiales"></tbody>
+          </table>
+        </div>
+        <p class="nota-receta-precios">Para cambiar el precio de un material, pulsa «Editar precio» o usa la base de precios de arriba.</p>
+        <p class="nota-receta-precios">A comprar = materiales del lote × (1 − devolución / 100), redondeado al entero más cercano. Ejemplo: 16 con 39 % → 10. El coste neto usa el consumo exacto antes de redondear. La compra es una estimación al reutilizar lo devuelto; necesitas la receta completa para iniciar el primer crafteo.</p>
+        <label id="confirmacion-receta" class="confirmacion-receta" hidden>
+          <input id="confirmar-receta" type="checkbox">
+          He añadido y comprobado todos los materiales de esta receta parcial.
+        </label>
+        <div class="agregar-material">
+          <div class="buscador">
+            <label for="buscar-receta" class="etiqueta">AÑADIR MATERIAL A ESTA RECETA</label>
+            <input id="buscar-receta" type="search" autocomplete="off" placeholder="Escribe el nombre o el ID de un material…" aria-autocomplete="list" aria-controls="sugerencias-receta" aria-expanded="false">
+            <div id="sugerencias-receta" class="sugerencias" role="listbox" hidden></div>
+          </div>
+          <span>Los artefactos siempre se consumen por completo.</span>
+        </div>
+        <div class="ajustes">
+          <div><label for="valor-item" class="etiqueta">VALOR DEL OBJETO (EN EL JUEGO)</label><input id="valor-item" type="number" min="0" step="0.01" value="0"><small>Se completa para armaduras, capuchas y calzado básicos T4–T8. Puedes ajustarlo según el juego.</small></div>
+          <div><label for="otros-costos" class="etiqueta">OTROS COSTES DEL LOTE</label><input id="otros-costos" type="number" min="0" step="0.01" value="0"></div>
+          <div><label for="comision" class="etiqueta">COMISIÓN DE VENTA (%)</label><input id="comision" type="number" min="0" max="100" step="0.1" value="0"></div>
+        </div>
+      </section>
+
+      <section id="acerca" class="pie-ayuda">
+        <h2>Cómo usarla</h2>
+        <p>Busca el objeto arriba, elige tier y encantamiento e introduce su precio de venta. Registra una vez los precios de los materiales en la base inferior: se guardan en este equipo y aparecen automáticamente arriba cuando seleccionas otra receta. También puedes cambiarlos arriba; esos cambios se guardan al salir del campo. Verifica las cantidades antes de fabricar.</p>
+        <p>Hay 2.501 iconos locales. Para otros objetos, la imagen se solicita al render oficial de Albion si hay conexión.</p>
+        <p>Para cocinar, elige «Comidas» en el catálogo y busca por nombre. Introduce el número de crafteos y el precio de venta de una comida. Los ingredientes se indican por crafteo; el panel muestra cuántas comidas obtendrás. Las 219 recetas incluidas funcionan sin conexión.</p>
+      </section>
+
+      <section id="plan" class="seccion-materiales plan-crafteo" aria-labelledby="titulo-plan">
+        <div class="seccion-encabezado">
+          <div><p class="sobretitulo">TUS CRAFTEOS GUARDADOS</p><h2 id="titulo-plan">Materiales acumulados</h2></div>
+          <a class="boton-secundario volver-calculadora" href="#calculadora">Añadir otro crafteo ↑</a>
+        </div>
+        <p class="aviso-receta">Cada guardado añade el lote y su porcentaje de devolución. La cantidad a comprar descuenta los materiales devueltos y se redondea a un entero. Los artefactos no reciben devolución. El tier y el encantamiento se contabilizan por separado.</p>
+        <div class="metricas-plan">
+          <div><strong id="total-lotes-plan">0</strong><span>Lotes guardados</span></div>
+          <div><strong id="total-items-plan">0</strong><span>Ítems a craftear</span></div>
+          <div><strong id="total-materiales-plan">0</strong><span>Tipos de material</span></div>
+        </div>
+        <div class="estado-plan-fila"><p id="estado-plan" role="status">Cargando tus lotes guardados…</p><button id="deshacer-lote" type="button" class="boton-secundario" hidden>Deshacer último borrado</button><button id="completar-plan" class="boton-secundario" type="button" disabled>Completar precios faltantes</button><button id="recargar-plan" class="boton-secundario" type="button">Actualizar lista</button><button id="borrar-todos-lotes" class="boton-secundario boton-borrar-todos" type="button" disabled>Borrar todos los lotes</button></div>
+        <p class="nota-receta-precios">Completar precios rellena solo los datos vacíos, según la fuente, ciudad y calidad guardadas en cada lote. En Ambos puede usar la API sincronizada. Los lotes antiguos usan la selección actual de la calculadora.</p>
+        <div id="plan-vacio" class="plan-vacio" hidden>No tienes crafteos guardados todavía. Elige un objeto y su cantidad arriba y pulsa <strong>Guardar crafteo</strong>.</div>
+        <div id="plan-contenido" hidden>
+          <h3>Objetos a craftear</h3>
+          <div id="objetos-plan" class="objetos-plan"></div>
+          <h3>Total de materiales y su destino</h3>
+          <label class="buscar-compras">Buscar material<input id="buscar-materiales-plan" type="search" placeholder="Cuero, lingote, T8.2…" autocomplete="off"></label>
+          <div class="herramientas-compras"><div class="progreso-compras"><p id="estado-compras-plan" role="status">Anota cuántas unidades ya compraste.</p><progress id="avance-compras-plan" value="0" max="1" aria-label="Tipos de material con la compra completa"></progress></div><label class="filtro-compras">Ver materiales<select id="filtro-compras-plan"><option value="todos">Todos</option><option value="pendientes">Pendientes</option><option value="completados">Completados</option></select></label><a id="exportar-compras-plan" class="boton-secundario" href="/api/plan/compras.csv?estado=todos" download>Exportar compras a Excel</a><button id="desmarcar-compras" class="boton-secundario" type="button" disabled>Poner todo a 0</button></div>
+          <p class="nota-receta-precios">Comprados / necesarios: escribe lo que ya tienes a la izquierda; el total necesario aparece en naranja. Se guarda al pulsar Enter o salir del campo. La casilla completa toda la compra y, al desmarcarla, vuelve a 0. Cada tier y encantamiento se guarda por separado.</p>
+          <div class="tabla-scroll tabla-plan">
+            <table><thead><tr><th>Material</th><th>Comprados / necesarios</th><th>Para qué se usará</th></tr></thead><tbody id="materiales-plan"></tbody></table>
+          </div>
+          <p id="compras-sin-resultados" class="nota-receta-precios" hidden>No hay materiales con este filtro.</p>
+          <p class="nota-receta-precios">El total se redondea después de sumar el consumo neto de todos los lotes. Los detalles se redondean por separado, por lo que su suma puede diferir del total.</p>
+          <h3>Detalle de lotes guardados</h3>
+          <div class="herramientas-lotes">
+            <label>Buscar lote<input id="filtrar-lotes" type="search" placeholder="Nombre, T8.4 o ID…" autocomplete="off"></label>
+            <label>Mostrar<select id="estado-lotes"><option value="todos">Todos los lotes</option><option value="beneficio">Con beneficio</option><option value="perdida">Con pérdida</option><option value="pendiente">Datos pendientes</option></select></label>
+            <label>Ordenar por<select id="orden-lotes"><option value="recientes">Más recientes</option><option value="mayor-ganancia">Mayor ganancia</option><option value="menor-ganancia">Menor ganancia</option><option value="nombre">Nombre</option></select></label>
+          </div>
+          <p id="resumen-filtro-lotes" class="nota-receta-precios" role="status"></p>
+          <div class="tabla-scroll tabla-plan">
+            <table><thead><tr><th>Objeto</th><th>Ítems a craftear</th><th>Venta / ítem</th><th>Solo estación</th><th>Gasto del lote</th><th>Ganancia del lote</th><th>A comprar para este lote</th><th>Acción</th></tr></thead><tbody id="lotes-plan"></tbody></table>
+          </div>
+          <p id="sin-resultados-lotes" class="nota-receta-precios" hidden>No hay lotes que coincidan con estos filtros.</p>
+          <button id="ver-mas-lotes" class="boton-secundario" type="button" hidden>Mostrar 50 más</button>
+          <p class="nota-receta-precios">El resumen económico incluye todos los lotes guardados, aunque filtres esta tabla.</p>
+          <section id="finanzas-plan" class="finanzas-plan" aria-label="Resumen económico de todos los lotes" aria-live="polite">
+            <h3>Resumen de todos los lotes</h3>
+            <div class="totales-plan">
+              <div class="total-plan gasto-acumulado"><span>Gasto total estimado</span><strong id="gasto-total-plan">—</strong><small>Materiales netos + estación + otros costes + comisión de venta</small></div>
+              <div class="total-plan ventas-acumuladas"><span>Ventas totales estimadas</span><strong id="ventas-total-plan">—</strong><small>Cantidad de cada lote × su precio de venta por ítem</small></div>
+              <div class="total-plan ganancia-acumulada"><span>Ganancia total estimada</span><strong id="ganancia-total-plan">—</strong><small>Ventas totales menos todos los gastos</small></div>
+            </div>
+            <p id="estado-finanzas-plan" class="estado-finanzas-plan">Completa los precios y costes de tus lotes.</p>
+            <div class="detalle-finanzas-plan">
+              <div><span>Materiales netos (devolución descontada)</span><b id="materiales-total-plan">—</b></div>
+              <div><span>Solo craftear en la estación</span><b id="estacion-total-plan">—</b></div>
+              <div><span>Otros costes</span><b id="otros-total-plan">—</b></div>
+              <div><span>Comisión de venta</span><b id="comision-total-plan">—</b></div>
+              <div><span>Inversión para fabricar (antes de vender)</span><b id="inversion-total-plan">—</b></div>
+              <div><span>Ingreso de ventas después de comisión</span><b id="ingreso-total-plan">—</b></div>
+            </div>
+            <p id="parcial-finanzas-plan" class="estado-finanzas-plan" hidden>Ganancia de los lotes con todos sus datos: <b id="ganancia-parcial-plan">—</b></p>
+          </section>
+        </div>
+        <p class="nota-receta-precios">Los precios y costes guardados se conservan. Si falta el valor del objeto y está incluido en la aplicación, se usa automáticamente para calcular la estación. Los totales incluyen todos los lotes; cualquier importe parcial se indica expresamente. Las ganancias se basan en el consumo neto estimado, antes de redondear las unidades a comprar.</p>
+        <details class="respaldo-datos"><summary>Respaldo y recuperación de la calculadora</summary>
+          <p>Descarga tus lotes, precios manuales y cantidades compradas para guardarlos o llevarlos a otra computadora. Al recuperar se añaden solo los datos ausentes; los actuales se conservan. El respaldo no incluye las lecturas ni la configuración del lector.</p>
+          <a class="boton-secundario" href="/api/respaldo" download>Descargar respaldo JSON</a>
+          <div class="herramientas-respaldo"><label for="archivo-respaldo">Elegir un respaldo JSON<input id="archivo-respaldo" type="file" accept=".json,application/json"></label><button id="restaurar-respaldo" class="boton-secundario" type="button" disabled>Recuperar datos ausentes</button></div>
+          <p id="estado-respaldo" role="status">Puedes recuperar el mismo respaldo varias veces sin duplicar tus lotes.</p>
+        </details>
+      </section>
+    </main>
+  </div>
+  <dialog id="editar-lote-dialog" class="editor-lote-dialog" aria-labelledby="editor-lote-titulo">
+    <form id="editor-lote-form">
+      <h2 id="editor-lote-titulo">Editar lote</h2>
+      <p id="editor-lote-objeto"></p>
+      <p class="nota-receta-precios">Cambia cantidades, devolución o precios de este lote. El acumulado y la ganancia se recalculan al guardar.</p>
+      <div class="campos-editor-lote"><label>Cantidad de crafteos<input id="editor-lote-cantidad" type="number" min="1" max="1000000" step="1" required></label><label>Devolución (%)<input id="editor-lote-retorno" type="number" min="0" max="100" step="0.1" required></label></div>
+      <p id="editor-lote-produccion" class="nota-receta-precios"></p>
+      <div class="campos-editor-lote">
+        <label>Precio a vender / ítem<input id="editor-lote-venta" type="number" min="0" step="0.01" required></label>
+        <label>Calidad<select id="editor-lote-calidad"><option value="1">Normal</option><option value="2">Bueno</option><option value="3">Notable</option><option value="4">Sobresaliente</option><option value="5">Obra maestra</option></select></label>
+        <label>Tasa / 100 nutrición<input id="editor-lote-tasa" type="number" min="0" step="0.01" required></label>
+        <label>Valor del objeto en el juego<input id="editor-lote-valor" type="number" min="0" step="0.01" required></label>
+        <label>Comisión de venta (%)<input id="editor-lote-comision" type="number" min="0" max="100" step="0.1" required></label>
+        <label>Otros costes de este lote<input id="editor-lote-otros" type="number" min="0" step="0.01" required></label>
+      </div>
+      <div class="titulo-precios-lote"><h3>Precios de los materiales</h3><button id="editor-lote-actualizar" type="button" class="boton-secundario">Usar precios actuales</button></div>
+      <div id="editor-lote-materiales" class="precios-editor-lote"></div>
+      <p id="editor-lote-estado" role="status"></p>
+      <div class="acciones-editor-lote"><button id="editor-lote-cancelar" type="button" class="boton-secundario">Cancelar</button><button id="editor-lote-guardar" type="submit" class="boton-guardar-lote">Guardar cambios del lote</button></div>
+    </form>
+  </dialog>
+</body>
+</html>
